@@ -2,41 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Glassmorphism Pastebin Design System - Vercel Inspired */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core monochromatic palette */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Glass surfaces */
+    --glass-primary: 240 10% 8%;
+    --glass-secondary: 240 8% 12%;
+    --glass-tertiary: 240 6% 16%;
+    
+    /* Card surfaces with glass effect */
+    --card: 240 10% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Accent system */
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 10% 3.9%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 8% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 6% 16%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and inputs with glass effect */
+    --border: 240 6% 20%;
+    --input: 240 8% 12%;
+    --ring: 142 76% 36%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Glass effects */
+    --glass-bg: 240 10% 8% / 0.6;
+    --glass-border: 240 20% 50% / 0.1;
+    --glass-backdrop: blur(16px);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(240 10% 8% / 0.8), hsl(240 8% 12% / 0.6));
+    --gradient-accent: linear-gradient(135deg, hsl(142 76% 36% / 0.1), hsl(142 76% 36% / 0.05));
+    
+    /* Shadows */
+    --shadow-glass: 0 8px 32px 0 hsl(240 10% 3.9% / 0.3);
+    --shadow-glow: 0 0 0 1px hsl(240 20% 50% / 0.1), 0 2px 4px 0 hsl(240 10% 3.9% / 0.1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +120,55 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+    background: radial-gradient(ellipse at top, hsl(240 10% 8% / 0.6), hsl(240 10% 3.9%));
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  /* Glass effect utilities */
+  .glass {
+    @apply backdrop-blur-md bg-card/60 border border-white/10;
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .glass-card {
+    @apply glass rounded-xl p-6;
+    background: var(--gradient-primary);
+  }
+  
+  .glass-input {
+    @apply glass border-white/20 bg-input/40 text-foreground placeholder:text-muted-foreground;
+  }
+  
+  /* Animation utilities */
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  /* Custom animations */
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px hsl(var(--accent) / 0.3);
+    }
+    to {
+      box-shadow: 0 0 40px hsl(var(--accent) / 0.6);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
 }
