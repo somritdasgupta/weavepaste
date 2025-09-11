@@ -14,13 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      session_users: {
+        Row: {
+          color: string
+          id: string
+          is_active: boolean | null
+          joined_at: string
+          last_seen: string
+          session_id: string
+          user_name: string
+        }
+        Insert: {
+          color: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          last_seen?: string
+          session_id: string
+          user_name: string
+        }
+        Update: {
+          color?: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          last_seen?: string
+          session_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_users_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          active_users: number | null
+          content: string | null
+          content_type: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          last_activity: string | null
+          session_code: string
+        }
+        Insert: {
+          active_users?: number | null
+          content?: string | null
+          content_type?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_activity?: string | null
+          session_code: string
+        }
+        Update: {
+          active_users?: number | null
+          content?: string | null
+          content_type?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_activity?: string | null
+          session_code?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_session_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
