@@ -121,7 +121,11 @@
 
   body {
     @apply bg-background text-foreground font-mono;
-    background: radial-gradient(ellipse at top, hsl(240 10% 8% / 0.6), hsl(240 10% 3.9%));
+    background: 
+      linear-gradient(90deg, hsl(240 6% 20% / 0.03) 1px, transparent 1px),
+      linear-gradient(0deg, hsl(240 6% 20% / 0.03) 1px, transparent 1px),
+      radial-gradient(ellipse at top, hsl(240 10% 8% / 0.6), hsl(240 10% 3.9%));
+    background-size: 20px 20px, 20px 20px, 100% 100%;
     min-height: 100vh;
   }
 }

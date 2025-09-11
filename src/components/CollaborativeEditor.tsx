@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,35 +12,80 @@ import {
   Wifi,
   WifiOff,
   Code,
-  FileText
+  FileText,
+  LogOut,
+  Github
 } from "lucide-react";
+import { useSession } from "@/hooks/useSession";
+import { useToast } from "@/hooks/use-toast";
 
-interface ConnectedUser {
-  id: string;
-  name: string;
-  color: string;
-  lastSeen: Date;
+interface CollaborativeEditorProps {
+  sessionCode?: string;
+  onLeave?: () => void;
 }
 
-const CollaborativeEditor = () => {
+const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps) => {
   const [content, setContent] = useState("");
-  const [sessionCode] = useState("ABC1234");
-  const [connectedUsers] = useState<ConnectedUser[]>([
-    { id: "1", name: "Device 1", color: "bg-green-500", lastSeen: new Date() },
-    { id: "2", name: "Device 2", color: "bg-blue-500", lastSeen: new Date() },
-    { id: "3", name: "Device 3", color: "bg-purple-500", lastSeen: new Date() },
-  ]);
-  const [isOnline] = useState(true);
   const [contentType, setContentType] = useState<"text" | "code">("text");
+  const { session, users, updateContent, leaveSession } = useSession();
+  const { toast } = useToast();
+  
+  // Use session from props or hook
+  const currentSession = session;
+  const currentCode = sessionCode || currentSession?.session_code || "DEMO123";
+  
   const [timeRemaining, setTimeRemaining] = useState("5h 23m");
+  const [isOnline] = useState(true);
 
-  const handleContentChange = (value: string) => {
+  // Update content when session content changes
+  useEffect(() => {
+    if (currentSession?.content !== undefined) {
+      setContent(currentSession.content);
+      setContentType(currentSession.content_type);
+    }
+  }, [currentSession?.content, currentSession?.content_type]);
+
+  // Calculate time remaining
+  useEffect(() => {
+    if (!currentSession?.expires_at) return;
+
+    const updateTimeRemaining = () => {
+      const now = new Date();
+      const expiresAt = new Date(currentSession.expires_at);
+      const diff = expiresAt.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setTimeRemaining("Expired");
+        return;
+      }
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      setTimeRemaining(`${hours}h ${minutes}m`);
+    };
+
+    updateTimeRemaining();
+    const interval = setInterval(updateTimeRemaining, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [currentSession?.expires_at]);
+
+  const handleContentChange = useCallback((value: string) => {
     setContent(value);
-    // In real implementation, this would sync via Supabase real-time
-  };
+    // Debounce content updates to avoid too many database calls
+    const timeoutId = setTimeout(() => {
+      updateContent(value, contentType);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [contentType, updateContent]);
 
   const copyContent = () => {
     navigator.clipboard.writeText(content);
+    toast({
+      title: "Copied!",
+      description: "Content copied to clipboard",
+    });
   };
 
   const downloadContent = () => {
@@ -48,17 +93,41 @@ const CollaborativeEditor = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pastesync-${sessionCode}.txt`;
+    a.download = `weavepaste-${currentCode}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    toast({
+      title: "Downloaded!",
+      description: `File saved as weavepaste-${currentCode}.txt`,
+    });
   };
 
   const formatContent = () => {
     // Auto-format based on content type
     if (contentType === "code") {
-      // In real implementation, this would use a code formatter
-      setContent(content.trim());
+      // Basic formatting - trim whitespace
+      const formatted = content.trim();
+      setContent(formatted);
+      updateContent(formatted, contentType);
+      toast({
+        title: "Formatted",
+        description: "Code has been formatted",
+      });
     }
+  };
+
+  const handleLeave = async () => {
+    await leaveSession();
+    onLeave?.();
+    toast({
+      title: "Left Session",
+      description: "You have left the collaborative session",
+    });
+  };
+
+  const handleContentTypeChange = (newType: "text" | "code") => {
+    setContentType(newType);
+    updateContent(content, newType);
   };
 
   return (
@@ -67,9 +136,9 @@ const CollaborativeEditor = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">PasteSync</h1>
+            <h1 className="text-2xl font-bold">WeavePaste</h1>
             <Badge variant="secondary" className="glass font-mono">
-              {sessionCode}
+              {currentCode}
             </Badge>
           </div>
           
@@ -104,7 +173,7 @@ const CollaborativeEditor = () => {
                   <Button
                     variant={contentType === "text" ? "glass" : "ghost"}
                     size="sm"
-                    onClick={() => setContentType("text")}
+                    onClick={() => handleContentTypeChange("text")}
                   >
                     <FileText className="w-4 h-4" />
                     Text
@@ -112,7 +181,7 @@ const CollaborativeEditor = () => {
                   <Button
                     variant={contentType === "code" ? "glass" : "ghost"}
                     size="sm"
-                    onClick={() => setContentType("code")}
+                    onClick={() => handleContentTypeChange("code")}
                   >
                     <Code className="w-4 h-4" />
                     Code
@@ -154,18 +223,22 @@ const CollaborativeEditor = () => {
                   Connected Devices
                 </h3>
                 <Badge variant="secondary" className="glass">
-                  {connectedUsers.length}
+                  {users.length}
                 </Badge>
               </div>
               
               <div className="space-y-2">
-                {connectedUsers.map((user) => (
-                  <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg bg-background/50">
-                    <div className={`w-3 h-3 rounded-full ${user.color}`} />
-                    <span className="text-sm font-medium">{user.name}</span>
-                    <div className="ml-auto w-2 h-2 bg-accent rounded-full animate-pulse" />
-                  </div>
-                ))}
+                {users.length > 0 ? (
+                  users.map((user) => (
+                    <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg bg-background/50">
+                      <div className={`w-3 h-3 rounded-full ${user.color}`} />
+                      <span className="text-sm font-medium">{user.user_name}</span>
+                      <div className="ml-auto w-2 h-2 bg-accent rounded-full animate-pulse" />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No other users connected</p>
+                )}
               </div>
             </Card>
 
@@ -200,13 +273,45 @@ const CollaborativeEditor = () => {
                   <Settings className="w-4 h-4" />
                   Session Settings
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full justify-start text-destructive">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start text-destructive"
+                  onClick={handleLeave}
+                >
+                  <LogOut className="w-4 h-4" />
                   Leave Session
                 </Button>
               </div>
             </Card>
           </div>
         </div>
+        
+        {/* Footer */}
+        <footer className="mt-8 pt-6 border-t border-border/30">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span>Made by</span>
+              <a 
+                href="https://github.com/somritdasgupta" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-accent hover:text-accent/80 transition-colors font-medium"
+              >
+                Somrit Dasgupta
+              </a>
+            </div>
+            <a 
+              href="https://github.com/somritdasgupta" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-accent hover:text-accent/80 transition-colors"
+            >
+              <Github className="w-4 h-4" />
+              @somritdasgupta
+            </a>
+          </div>
+        </footer>
       </div>
     </div>
   );

@@ -1,101 +1,153 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { QrCode, ArrowRight, Scan } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { QrCode, Users, Loader2 } from "lucide-react";
+import { useSession } from "@/hooks/useSession";
+import { useToast } from "@/hooks/use-toast";
 
-const SessionJoiner = () => {
-  const [joinCode, setJoinCode] = useState("");
-  const [isJoining, setIsJoining] = useState(false);
+interface SessionJoinerProps {
+  onSessionJoined?: (sessionCode: string) => void;
+}
+
+const SessionJoiner = ({ onSessionJoined }: SessionJoinerProps) => {
+  const [sessionCode, setSessionCode] = useState("");
+  const [deviceName, setDeviceName] = useState("");
+  const { joinSession, isLoading, error } = useSession();
+  const { toast } = useToast();
+
+  // Check URL for session code parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinCode = urlParams.get('join');
+    if (joinCode) {
+      setSessionCode(joinCode.toUpperCase());
+    }
+  }, []);
 
   const handleJoinSession = async () => {
-    if (!joinCode.trim()) return;
+    if (!sessionCode.trim()) return;
     
-    setIsJoining(true);
-    // Simulate joining session
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsJoining(false);
-    // Navigate to session
+    const session = await joinSession(sessionCode, deviceName);
+    if (session) {
+      onSessionJoined?.(session.session_code);
+      toast({
+        title: "Joined Session!",
+        description: `Connected to session ${session.session_code}`,
+      });
+    }
   };
 
-  const formatCode = (value: string) => {
-    // Auto-format and uppercase the code
-    return value.toUpperCase().replace(/[^A-Z0-9]/g, "").substring(0, 7);
+  // Show error toast when error changes
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: error,
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
+  const scanQRCode = () => {
+    // For demo purposes, we'll simulate QR code scanning
+    toast({
+      title: "QR Scanner",
+      description: "QR code scanning feature would be implemented using camera API",
+    });
+  };
+
+  const handleSessionCodeChange = (value: string) => {
+    // Only allow alphanumeric characters and limit to 7 characters
+    const cleanValue = value.replace(/[^A-Z0-9]/g, '').slice(0, 7);
+    setSessionCode(cleanValue);
   };
 
   return (
-    <div className="max-w-lg mx-auto space-y-8">
-      {/* Header */}
+    <div className="space-y-8">
       <div className="text-center space-y-4">
-        <div className="w-20 h-20 mx-auto bg-accent/10 rounded-3xl flex items-center justify-center animate-float">
-          <Scan className="w-10 h-10 text-accent" />
-        </div>
-        <h1 className="text-4xl font-bold">Join Session</h1>
-        <p className="text-muted-foreground">
-          Enter the 7-digit code to join an active session
+        <h2 className="text-4xl font-bold">Join Session</h2>
+        <p className="text-muted-foreground text-lg">
+          Enter a session code to join an existing collaborative session
         </p>
       </div>
 
-      {/* Join Form */}
-      <Card className="glass-card space-y-6">
+      <Card className="glass-card max-w-md mx-auto space-y-6">
         <div className="space-y-4">
-          <label className="text-sm font-medium">Session Code</label>
-          <Input
-            value={joinCode}
-            onChange={(e) => setJoinCode(formatCode(e.target.value))}
-            placeholder="ABC1234"
-            className="glass-input text-2xl font-mono text-center tracking-wider h-14"
-            maxLength={7}
-          />
-          <p className="text-xs text-muted-foreground text-center">
-            7-character code provided by session creator
-          </p>
+          <div className="space-y-2">
+            <Label htmlFor="sessionCode" className="text-sm font-medium">
+              Session Code
+            </Label>
+            <Input
+              id="sessionCode"
+              placeholder="Enter 7-digit session code"
+              value={sessionCode}
+              onChange={(e) => handleSessionCodeChange(e.target.value.toUpperCase())}
+              className="glass-input text-center font-mono text-lg tracking-wider"
+              maxLength={7}
+            />
+            <p className="text-xs text-muted-foreground text-center">
+              {sessionCode.length}/7 characters
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="deviceName" className="text-sm font-medium">
+              Device Name (Optional)
+            </Label>
+            <Input
+              id="deviceName"
+              placeholder="e.g., iPhone 13, MacBook Pro"
+              value={deviceName}
+              onChange={(e) => setDeviceName(e.target.value)}
+              className="glass-input"
+              maxLength={20}
+            />
+          </div>
         </div>
 
-        <Button 
-          onClick={handleJoinSession}
-          disabled={joinCode.length !== 7 || isJoining}
-          variant="glass"
-          size="lg"
-          className="w-full"
-        >
-          {isJoining ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-              Joining Session...
+        <div className="space-y-3">
+          <Button 
+            onClick={handleJoinSession} 
+            disabled={sessionCode.length !== 7 || isLoading}
+            variant="glass"
+            size="lg"
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Joining Session...
+              </>
+            ) : (
+              <>
+                <Users className="w-4 h-4" />
+                Join Session
+              </>
+            )}
+          </Button>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border/30" />
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              Join Session
-              <ArrowRight className="w-4 h-4" />
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or</span>
             </div>
-          )}
-        </Button>
-      </Card>
-
-      {/* QR Scanner Option */}
-      <Card className="glass-card text-center space-y-4">
-        <QrCode className="w-12 h-12 mx-auto text-muted-foreground" />
-        <div className="space-y-2">
-          <h3 className="font-semibold">Scan QR Code</h3>
-          <p className="text-sm text-muted-foreground">
-            Use your camera to scan a session QR code
-          </p>
+          </div>
+          
+          <Button 
+            onClick={scanQRCode} 
+            variant="outline" 
+            size="lg" 
+            className="w-full glass"
+          >
+            <QrCode className="w-4 h-4" />
+            Scan QR Code
+          </Button>
         </div>
-        <Button variant="glass" className="w-full">
-          Open Camera Scanner
-        </Button>
       </Card>
-
-      {/* Help */}
-      <div className="text-center space-y-2">
-        <p className="text-sm text-muted-foreground">
-          Don't have a session code?
-        </p>
-        <Button variant="link" className="text-accent hover:text-accent/80">
-          Create new session instead
-        </Button>
-      </div>
     </div>
   );
 };
