@@ -86,7 +86,7 @@ const CodeInput: React.FC<CodeInputProps> = ({
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-3 justify-center">
+      <div className="flex gap-1 sm:gap-2 md:gap-3 justify-center max-w-full overflow-hidden">
         {values.map((value, index) => (
           <Input
             key={index}
@@ -95,7 +95,7 @@ const CodeInput: React.FC<CodeInputProps> = ({
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={handlePaste}
-            className={`w-12 h-12 text-center text-xl font-bold text-foreground bg-white/10 backdrop-blur-sm border-2 rounded-xl focus:ring-0 transition-all duration-200 ${
+            className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-center text-sm sm:text-lg md:text-xl font-bold text-foreground bg-white/10 backdrop-blur-sm border-2 rounded-lg md:rounded-xl focus:ring-0 transition-all duration-200 flex-shrink-0 ${
               error
                 ? "border-red-400 focus:border-red-500"
                 : isSubmitting

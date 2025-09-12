@@ -64,44 +64,53 @@ const QRCodeGenerator = ({ sessionCode, children }: QRCodeGeneratorProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="glass-card border-white/20 max-w-md">
+      <DialogContent 
+        className="sm:max-w-md w-[90vw] max-w-[400px] mx-auto bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl"
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 9999
+        }}
+      >
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">
+          <DialogTitle className="text-base md:text-xl text-white">
             QR Code - Session {sessionCode}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {qrDataURL && (
             <div className="flex justify-center">
-              <div className="p-4 bg-white rounded-lg">
+              <div className="p-3 md:p-4 bg-white rounded-lg">
                 <img
                   src={qrDataURL}
                   alt={`QR Code for ${sessionCode}`}
-                  className="w-64 h-64"
+                  className="w-48 h-48 md:w-64 md:h-64"
                 />
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <p className="text-[clamp(0.75rem,2vw,0.875rem)] text-muted-foreground text-center">
+            <p className="text-xs md:text-sm text-white/70 text-center">
               Scan with any device to join this session
             </p>
             <div className="flex gap-2">
               <Button
-                variant="glass"
-                className="flex-1 text-[clamp(0.75rem,2vw,0.875rem)]"
+                variant="outline"
+                className="flex-1 text-xs md:text-sm bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                 onClick={copyURL}
               >
-                <Copy className="w-4 h-4" />
+                <Copy className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                 Copy Link
               </Button>
               <Button
                 variant="outline"
-                className="glass flex-1 text-[clamp(0.75rem,2vw,0.875rem)]"
+                className="flex-1 text-xs md:text-sm bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                 onClick={downloadQR}
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                 Download
               </Button>
             </div>

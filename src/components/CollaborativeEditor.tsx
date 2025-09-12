@@ -343,23 +343,23 @@ const CollaborativeEditor = ({
 
         <div className="relative z-10 p-4 sm:p-6 w-full">
           {/* Compact Header Card - Session Info & Share */}
-          <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl p-4 mb-6 hover:bg-white/15 transition-all duration-300">
-            <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap sm:flex-nowrap">
+          <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-lg md:rounded-2xl p-2 md:p-4 mb-3 md:mb-6 hover:bg-white/15 transition-all duration-300">
+            <div className="flex items-center justify-between gap-1 md:gap-4 flex-wrap sm:flex-nowrap">
               {/* Session Info - Compact */}
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="flex items-center gap-1 md:gap-3 min-w-0 flex-1">
                 <Badge
                   variant="outline"
-                  className="text-sm sm:text-lg font-bold px-2 sm:px-3 py-1 sm:py-2 bg-white/20 backdrop-blur-sm border-white/30 text-white rounded-lg sm:rounded-xl break-all"
+                  className="text-xs md:text-lg font-bold px-1.5 md:px-3 py-0.5 md:py-2 bg-white/20 backdrop-blur-sm border-white/30 text-white rounded-md md:rounded-xl break-all"
                 >
                   {sessionCode || session?.session_code}
                 </Badge>
-                <div className="flex items-center gap-1 sm:gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
                   {isConnected ? (
                     <></>
                   ) : (
                     <>
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                      <span className="text-red-400 font-medium text-xs sm:text-sm">
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-red-500 rounded-full" />
+                      <span className="text-red-400 font-medium text-xs">
                         Offline
                       </span>
                     </>
@@ -368,14 +368,14 @@ const CollaborativeEditor = ({
               </div>
 
               {/* Action Buttons - Icons Only */}
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <div className="flex items-center gap-0.5 md:gap-2 flex-shrink-0">
                 <Button
                   onClick={copyInviteLink}
                   size="sm"
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-lg rounded-lg"
+                  className="h-6 w-6 md:h-8 md:w-8 p-0 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-lg rounded-md md:rounded-lg"
                   title="Copy invite link"
                 >
-                  <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Copy className="w-2.5 h-2.5 md:w-4 md:h-4" />
                 </Button>
                 <QRCodeGenerator
                   sessionCode={sessionCode || session?.session_code || ""}
@@ -383,30 +383,30 @@ const CollaborativeEditor = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                    className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-md md:rounded-lg"
                     title="Show QR code"
                   >
-                    <QrCode className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <QrCode className="w-2.5 h-2.5 md:w-4 md:h-4" />
                   </Button>
                 </QRCodeGenerator>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={shareSession}
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                  className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-md md:rounded-lg"
                   title="Share session"
                 >
-                  <Share className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Share className="w-2.5 h-2.5 md:w-4 md:h-4" />
                 </Button>
                 {onLeave && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={onLeave}
-                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-lg"
+                    className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-md md:rounded-lg"
                     title="Leave session"
                   >
-                    <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <LogOut className="w-2.5 h-2.5 md:w-4 md:h-4" />
                   </Button>
                 )}
               </div>
@@ -414,30 +414,30 @@ const CollaborativeEditor = ({
           </Card>
 
           {/* Sync History Card */}
-          <div className="mb-8">
-            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 hover:bg-white/15 transition-all duration-300">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <History className="w-8 h-8 text-green-400" />
+          <div className="mb-4 md:mb-8">
+            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl p-3 md:p-8 hover:bg-white/15 transition-all duration-300">
+              <div className="text-center mb-3 md:mb-8">
+                <div className="w-8 h-8 md:w-16 md:h-16 bg-green-500/20 rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-6">
+                  <History className="w-4 h-4 md:w-8 md:h-8 text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-3">
+                <h2 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-3">
                   Sync History
                 </h2>
-                <p className="text-white/70 font-medium">
+                <p className="text-white/70 font-medium text-xs md:text-base">
                   Recent clipboard syncs across all devices
                 </p>
               </div>
 
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-2 md:space-y-4 max-h-64 md:max-h-96 overflow-y-auto">
                 {copyHistory.length > 0 ? (
                   copyHistory.map((item, index) => (
                     <div
                       key={item.id}
-                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 group"
+                      className="p-2 md:p-4 rounded-lg md:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 group"
                     >
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center justify-between gap-2 md:gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
                             <span className="text-xs font-medium text-white/50">
                               #{index + 1}
                             </span>
@@ -445,36 +445,36 @@ const CollaborativeEditor = ({
                               {item.timestamp.toLocaleTimeString()}
                             </span>
                           </div>
-                          <p className="text-white text-sm font-medium leading-relaxed">
-                            {item.content.length > 80
-                              ? item.content.slice(0, 80) + "..."
+                          <p className="text-white text-xs md:text-sm font-medium leading-relaxed">
+                            {item.content.length > 60
+                              ? item.content.slice(0, 60) + "..."
                               : item.content}
                           </p>
                         </div>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 md:gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(item.content)}
-                            className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                            className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                           >
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-2.5 h-2.5 md:w-3 md:h-3" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setCurrentText(item.content)}
-                            className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                            className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
                           >
-                            <Edit className="w-3 h-3" />
+                            <Edit className="w-2.5 h-2.5 md:w-3 md:h-3" />
                           </Button>
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-12">
-                    <p className="text-white/50 font-medium">
+                  <div className="text-center py-6 md:py-12">
+                    <p className="text-white/50 font-medium text-xs md:text-base">
                       Nothing synced yet. Your recent clipboard syncs will
                       appear here.
                     </p>
@@ -483,13 +483,13 @@ const CollaborativeEditor = ({
               </div>
 
               {copyHistory.length > 0 && (
-                <div className="flex gap-3 mt-6 pt-6 border-t border-white/20">
+                <div className="flex gap-2 md:gap-3 mt-3 md:mt-6 pt-3 md:pt-6 border-t border-white/20">
                   <Button
                     variant="outline"
                     onClick={clearCopyHistory}
-                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400"
+                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 text-xs md:text-sm px-2 md:px-4 h-8 md:h-auto"
                   >
-                    <Trash className="w-4 h-4 mr-2" />
+                    <Trash className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                     Clear History
                   </Button>
                   <Button
@@ -500,9 +500,9 @@ const CollaborativeEditor = ({
                         .join("\n\n---\n\n");
                       copyToClipboard(allContent);
                     }}
-                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 text-xs md:text-sm px-2 md:px-4 h-8 md:h-auto"
                   >
-                    <Copy className="w-4 h-4 mr-2" />
+                    <Copy className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                     Copy All
                   </Button>
                 </div>
@@ -511,45 +511,45 @@ const CollaborativeEditor = ({
           </div>
 
           {/* Device Management & Session Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-24">
-            {/* Added mb-24 for floating editor space */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-8 mb-16 md:mb-24">
+            {/* Added mb-16 for floating editor space */}
             {/* Connected Devices */}
-            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 hover:bg-white/15 transition-all duration-300">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-8 h-8 text-purple-400" />
+            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl p-3 md:p-8 hover:bg-white/15 transition-all duration-300">
+              <div className="text-center mb-3 md:mb-8">
+                <div className="w-8 h-8 md:w-16 md:h-16 bg-purple-500/20 rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-6">
+                  <Users className="w-4 h-4 md:w-8 md:h-8 text-purple-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-3">
                   Connected Devices
                 </h3>
-                <p className="text-white/70 font-medium">
+                <p className="text-white/70 font-medium text-xs md:text-base">
                   {users.length} device{users.length !== 1 ? "s" : ""} online
                 </p>
               </div>
 
-              <div className="space-y-4 max-h-64 overflow-y-auto">
+              <div className="space-y-2 md:space-y-4 max-h-48 md:max-h-64 overflow-y-auto">
                 {users.length > 0 ? (
                   users.map((user) => (
                     <div
                       key={user.id}
-                      className="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-200"
+                      className="flex items-center gap-2 md:gap-4 p-2 md:p-4 rounded-lg md:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-200"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent/80 to-accent/60 flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">
+                      <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-accent/80 to-accent/60 flex items-center justify-center">
+                        <span className="text-white text-xs md:text-sm font-bold">
                           {user.user_name?.slice(0, 2).toUpperCase() || "UN"}
                         </span>
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-white text-xs md:text-base">
                           {user.user_name}
                           {user.id === currentUser?.id && (
-                            <span className="text-xs text-white/60 ml-2 font-medium">
+                            <span className="text-xs text-white/60 ml-1 md:ml-2 font-medium">
                               (You)
                             </span>
                           )}
                         </p>
-                        <div className="flex items-center gap-2 text-xs">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        <div className="flex items-center gap-1 md:gap-2 text-xs">
+                          <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full animate-pulse" />
                           <span className="text-green-400 font-medium">
                             Active now
                           </span>
@@ -562,21 +562,21 @@ const CollaborativeEditor = ({
                           onClick={() =>
                             handleKickUser(user.id, user.user_name)
                           }
-                          className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400"
+                          className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 h-6 w-6 md:h-8 md:w-8 p-0"
                           title={`Remove ${user.user_name} from session`}
                         >
-                          <UserX className="w-4 h-4" />
+                          <UserX className="w-2.5 h-2.5 md:w-4 md:h-4" />
                         </Button>
                       )}
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8">
-                    <Users className="w-12 h-12 mx-auto text-white/30 mb-4" />
-                    <p className="text-white/50 font-medium">
+                  <div className="text-center py-4 md:py-8">
+                    <Users className="w-8 h-8 md:w-12 md:h-12 mx-auto text-white/30 mb-2 md:mb-4" />
+                    <p className="text-white/50 font-medium text-xs md:text-base">
                       Only you are online
                     </p>
-                    <p className="text-xs text-white/40 mt-2 font-medium">
+                    <p className="text-xs text-white/40 mt-1 md:mt-2 font-medium">
                       Share the session code to invite others
                     </p>
                   </div>
@@ -584,44 +584,44 @@ const CollaborativeEditor = ({
               </div>
 
               {/* Session Actions */}
-              <div className="flex gap-3 mt-8 pt-6 border-t border-white/20">
+              <div className="flex gap-2 md:gap-3 mt-4 md:mt-8 pt-3 md:pt-6 border-t border-white/20">
                 <Button
                   variant="outline"
                   onClick={onLeave}
-                  className="flex-1 h-12 text-lg font-bold bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-none shadow-xl rounded-2xl"
+                  className="flex-1 h-8 md:h-12 text-sm md:text-lg font-bold bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-none shadow-xl rounded-lg md:rounded-2xl"
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
+                  <LogOut className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
                   Leave Session
                 </Button>
               </div>
             </Card>
 
             {/* Session Statistics */}
-            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 hover:bg-white/15 transition-all duration-300">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Activity className="w-8 h-8 text-blue-400" />
+            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl md:rounded-3xl p-3 md:p-8 hover:bg-white/15 transition-all duration-300">
+              <div className="text-center mb-3 md:mb-8">
+                <div className="w-8 h-8 md:w-16 md:h-16 bg-blue-500/20 rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-2 md:mb-6">
+                  <Activity className="w-4 h-4 md:w-8 md:h-8 text-blue-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-1 md:mb-3">
                   Session Stats
                 </h3>
-                <p className="text-white/70 font-medium">
+                <p className="text-white/70 font-medium text-xs md:text-base">
                   Real-time session information
                 </p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-2 md:space-y-6">
                 {/* Session Started */}
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-500/20 rounded-xl flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-green-400" />
+                <div className="flex items-center justify-between p-2 md:p-4 rounded-lg md:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-1.5 md:gap-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-green-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
+                      <Clock className="w-3 h-3 md:w-4 md:h-4 text-green-400" />
                     </div>
-                    <span className="text-white font-medium">
+                    <span className="text-white font-medium text-xs md:text-base">
                       Session Started
                     </span>
                   </div>
-                  <span className="text-white/70 font-semibold">
+                  <span className="text-white/70 font-semibold text-xs md:text-base">
                     {session?.created_at
                       ? new Date(session.created_at).toLocaleTimeString()
                       : "--:--"}
@@ -629,16 +629,16 @@ const CollaborativeEditor = ({
                 </div>
 
                 {/* Session Duration */}
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                      <Activity className="w-4 h-4 text-blue-400" />
+                <div className="flex items-center justify-between p-2 md:p-4 rounded-lg md:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-1.5 md:gap-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
+                      <Activity className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
                     </div>
-                    <span className="text-white font-medium">
+                    <span className="text-white font-medium text-xs md:text-base">
                       Active Duration
                     </span>
                   </div>
-                  <span className="text-white/70 font-semibold">
+                  <span className="text-white/70 font-semibold text-xs md:text-base">
                     {session?.created_at
                       ? Math.floor(
                           (Date.now() -
@@ -650,27 +650,27 @@ const CollaborativeEditor = ({
                 </div>
 
                 {/* Total Syncs */}
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                      <History className="w-4 h-4 text-purple-400" />
+                <div className="flex items-center justify-between p-2 md:p-4 rounded-lg md:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-1.5 md:gap-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-purple-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
+                      <History className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
                     </div>
-                    <span className="text-white font-medium">Total Syncs</span>
+                    <span className="text-white font-medium text-xs md:text-base">Total Syncs</span>
                   </div>
-                  <span className="text-white/70 font-semibold">
+                  <span className="text-white/70 font-semibold text-xs md:text-base">
                     {copyHistory.length}
                   </span>
                 </div>
 
                 {/* Session Expires */}
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-orange-400" />
+                <div className="flex items-center justify-between p-2 md:p-4 rounded-lg md:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-1.5 md:gap-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
+                      <Clock className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
                     </div>
-                    <span className="text-white font-medium">Expires In</span>
+                    <span className="text-white font-medium text-xs md:text-base">Expires In</span>
                   </div>
-                  <span className="text-white/70 font-semibold">
+                  <span className="text-white/70 font-semibold text-xs md:text-base">
                     {session?.expires_at
                       ? Math.floor(
                           (new Date(session.expires_at).getTime() -
@@ -685,7 +685,7 @@ const CollaborativeEditor = ({
           </div>
 
           {/* Floating Text Editor - Bottom */}
-          <div className="fixed bottom-4 left-4 right-4 z-40">
+          <div className="fixed bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 z-40">
             {/* Minimized State - Compact Editor */}
             {!isEditorExpanded && (
               <div className="relative">
@@ -693,9 +693,9 @@ const CollaborativeEditor = ({
                   value={currentText}
                   onChange={(e) => setCurrentText(e.target.value)}
                   placeholder="Type your message..."
-                  className="w-full h-16 sm:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 pr-24 text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-2xl"
+                  className="w-full h-12 md:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg md:rounded-2xl p-2 md:p-4 pr-16 md:pr-24 text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-2xl"
                   style={{
-                    fontSize: "clamp(0.875rem, 2.5vw, 1.125rem)",
+                    fontSize: "clamp(0.75rem, 2vw, 1rem)",
                     fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
                   }}
                   onKeyDown={(e) => {
@@ -707,18 +707,18 @@ const CollaborativeEditor = ({
                 />
 
                 {/* Button Container */}
-                <div className="absolute top-2 right-2 flex items-center gap-1">
+                <div className="absolute top-1 md:top-2 right-1 md:right-2 flex items-center gap-0.5 md:gap-1">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsCodeMode(!isCodeMode)}
-                    className="h-6 w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                    className="h-5 w-5 md:h-6 md:w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-md"
                     title={isCodeMode ? "Text Mode" : "Code Mode"}
                   >
                     {isCodeMode ? (
-                      <Type className="w-3 h-3" />
+                      <Type className="w-2.5 h-2.5 md:w-3 md:h-3" />
                     ) : (
-                      <Code className="w-3 h-3" />
+                      <Code className="w-2.5 h-2.5 md:w-3 md:h-3" />
                     )}
                   </Button>
 
@@ -727,35 +727,35 @@ const CollaborativeEditor = ({
                     size="sm"
                     onClick={() => setCurrentText("")}
                     disabled={!currentText.trim()}
-                    className="h-6 w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-lg"
+                    className="h-5 w-5 md:h-6 md:w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-md"
                     title="Clear"
                   >
-                    <Trash className="w-3 h-3" />
+                    <Trash className="w-2.5 h-2.5 md:w-3 md:h-3" />
                   </Button>
 
                   <Button
                     onClick={handleSendText}
                     size="sm"
-                    className="h-6 w-6 p-0 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                    className="h-5 w-5 md:h-6 md:w-6 p-0 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
                     disabled={!currentText.trim()}
                     title="Sync"
                   >
-                    <Send className="w-3 h-3" />
+                    <Send className="w-2.5 h-2.5 md:w-3 md:h-3" />
                   </Button>
 
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEditorExpanded(true)}
-                    className="h-6 w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                    className="h-5 w-5 md:h-6 md:w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-md"
                     title="Expand"
                   >
-                    <Maximize2 className="w-3 h-3" />
+                    <Maximize2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
                   </Button>
                 </div>
 
                 {/* Bottom Button Container */}
-                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                <div className="absolute bottom-1 md:bottom-2 right-1 md:right-2 flex items-center gap-1">
                   <span className="text-xs text-white/50">
                     {currentText.length}
                   </span>
@@ -775,29 +775,29 @@ const CollaborativeEditor = ({
 
               <div className="relative h-screen flex flex-col">
                 {/* Expanded Header */}
-                <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-white/10 backdrop-blur-xl">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                      <Type className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                <div className="flex items-center justify-between p-2 md:p-4 border-b border-white/20 bg-white/10 backdrop-blur-xl">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <div className="w-5 h-5 md:w-8 md:h-8 bg-blue-500/20 rounded-md md:rounded-lg flex items-center justify-center">
+                      <Type className="w-2.5 h-2.5 md:w-4 md:h-4 text-blue-400" />
                     </div>
-                    <span className="text-sm sm:text-lg font-bold text-white">
+                    <span className="text-sm md:text-lg font-bold text-white">
                       Editor
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 md:gap-2">
                     {/* Mode Switch */}
                     <Button
                       variant={isCodeMode ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setIsCodeMode(!isCodeMode)}
-                      className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                      className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-md md:rounded-lg"
                       title={isCodeMode ? "Text Mode" : "Code Mode"}
                     >
                       {isCodeMode ? (
-                        <Type className="w-4 h-4" />
+                        <Type className="w-3 h-3 md:w-4 md:h-4" />
                       ) : (
-                        <Code className="w-4 h-4" />
+                        <Code className="w-3 h-3 md:w-4 md:h-4" />
                       )}
                     </Button>
 
@@ -807,10 +807,10 @@ const CollaborativeEditor = ({
                       size="sm"
                       onClick={() => setCurrentText("")}
                       disabled={!currentText.trim()}
-                      className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-lg"
+                      className="h-6 w-6 md:h-8 md:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-md md:rounded-lg"
                       title="Clear"
                     >
-                      <Trash className="w-4 h-4" />
+                      <Trash className="w-3 h-3 md:w-4 md:h-4" />
                     </Button>
 
                     {/* Sync */}
@@ -885,8 +885,8 @@ const CollaborativeEditor = ({
                 </div>
 
                 {/* Editor Footer */}
-                <div className="flex items-center justify-between border-t border-white/20 bg-white/5 backdrop-blur-sm p-2 sm:p-3">
-                  <div className="flex items-center gap-4 text-xs sm:text-sm text-white/70">
+                <div className="flex items-center justify-between border-t border-white/20 bg-white/5 backdrop-blur-sm p-2 md:p-3">
+                  <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-white/70">
                     <span>{currentText.length} chars</span>
                     <span>{currentText.split("\n").length} lines</span>
                     {autoSyncEnabled && (
