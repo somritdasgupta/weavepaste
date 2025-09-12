@@ -14,10 +14,12 @@ import {
   Code,
   FileText,
   LogOut,
-  Github
+  Github,
+  QrCode
 } from "lucide-react";
 import { useSession } from "@/hooks/useSession";
 import { useToast } from "@/hooks/use-toast";
+import QRCodeGenerator from "@/components/QRCodeGenerator";
 
 interface CollaborativeEditorProps {
   sessionCode?: string;
@@ -72,13 +74,16 @@ const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps)
 
   const handleContentChange = useCallback((value: string) => {
     setContent(value);
-    // Debounce content updates to avoid too many database calls
+  }, []);
+
+  // Separate effect for debounced content updates
+  useEffect(() => {
     const timeoutId = setTimeout(() => {
-      updateContent(value, contentType);
+      updateContent(content, contentType);
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [contentType, updateContent]);
+  }, [content, contentType, updateContent]);
 
   const copyContent = () => {
     navigator.clipboard.writeText(content);
@@ -134,15 +139,15 @@ const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps)
     <div className="min-h-screen p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">WeavePaste</h1>
-            <Badge variant="secondary" className="glass font-mono">
+            <h1 className="text-xl sm:text-2xl font-bold">WeavePaste</h1>
+            <Badge variant="secondary" className="glass font-mono text-xs sm:text-sm">
               {currentCode}
             </Badge>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Connection Status */}
             <div className="flex items-center gap-2 text-sm">
               {isOnline ? (
@@ -150,7 +155,7 @@ const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps)
               ) : (
                 <WifiOff className="w-4 h-4 text-destructive" />
               )}
-              <span className="text-muted-foreground">
+              <span className="text-muted-foreground hidden sm:inline">
                 {isOnline ? "Connected" : "Disconnected"}
               </span>
             </div>
@@ -158,7 +163,7 @@ const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps)
             {/* Time remaining */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>{timeRemaining}</span>
+              <span className="text-xs sm:text-sm">{timeRemaining}</span>
             </div>
           </div>
         </div>
@@ -248,7 +253,7 @@ const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps)
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Created</span>
-                  <span>37m ago</span>
+                  <span>{currentSession?.created_at ? new Date(currentSession.created_at).toLocaleTimeString() : 'Just now'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Auto-cleanup</span>
@@ -273,6 +278,14 @@ const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps)
                   <Settings className="w-4 h-4" />
                   Session Settings
                 </Button>
+                
+                <QRCodeGenerator sessionCode={currentCode}>
+                  <Button variant="glass" size="sm" className="w-full justify-start">
+                    <QrCode className="w-4 h-4" />
+                    Share QR Code
+                  </Button>
+                </QRCodeGenerator>
+                
                 <Button 
                   variant="ghost" 
                   size="sm" 
