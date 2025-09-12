@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { QrCode, Download, Copy } from "lucide-react";
 import QRCode from "qrcode";
 import { useToast } from "@/hooks/use-toast";
@@ -23,35 +29,29 @@ const QRCodeGenerator = ({ sessionCode, children }: QRCodeGeneratorProps) => {
         width: 300,
         margin: 2,
         color: {
-          dark: '#ffffff',
-          light: '#0a0a0a'
-        }
+          dark: "#ffffff",
+          light: "#0a0a0a",
+        },
       })
         .then((url) => setQrDataURL(url))
-        .catch((err) => console.error('QR Code generation error:', err));
+        .catch((err) => console.error("QR Code generation error:", err));
     }
   }, [isOpen, sessionCode, joinURL]);
 
   const downloadQR = () => {
     if (!qrDataURL) return;
-    
-    const link = document.createElement('a');
+
+    const link = document.createElement("a");
     link.download = `weavepaste-${sessionCode}-qr.png`;
     link.href = qrDataURL;
     link.click();
-    
-    toast({
-      title: "Downloaded!",
-      description: "QR code saved to your device",
-    });
+
+    // Removed unnecessary download toast
   };
 
   const copyURL = () => {
     navigator.clipboard.writeText(joinURL);
-    toast({
-      title: "Copied!",
-      description: "Join URL copied to clipboard",
-    });
+    // Removed unnecessary copy toast
   };
 
   return (
@@ -64,29 +64,43 @@ const QRCodeGenerator = ({ sessionCode, children }: QRCodeGeneratorProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="glass-card border-white/20">
+      <DialogContent className="glass-card border-white/20 max-w-md">
         <DialogHeader>
-          <DialogTitle>QR Code for Session {sessionCode}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            QR Code - Session {sessionCode}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {qrDataURL && (
             <div className="flex justify-center">
               <div className="p-4 bg-white rounded-lg">
-                <img src={qrDataURL} alt={`QR Code for ${sessionCode}`} className="w-64 h-64" />
+                <img
+                  src={qrDataURL}
+                  alt={`QR Code for ${sessionCode}`}
+                  className="w-64 h-64"
+                />
               </div>
             </div>
           )}
-          
+
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-[clamp(0.75rem,2vw,0.875rem)] text-muted-foreground text-center">
               Scan with any device to join this session
             </p>
             <div className="flex gap-2">
-              <Button variant="glass" className="flex-1" onClick={copyURL}>
+              <Button
+                variant="glass"
+                className="flex-1 text-[clamp(0.75rem,2vw,0.875rem)]"
+                onClick={copyURL}
+              >
                 <Copy className="w-4 h-4" />
                 Copy Link
               </Button>
-              <Button variant="outline" className="glass flex-1" onClick={downloadQR}>
+              <Button
+                variant="outline"
+                className="glass flex-1 text-[clamp(0.75rem,2vw,0.875rem)]"
+                onClick={downloadQR}
+              >
                 <Download className="w-4 h-4" />
                 Download
               </Button>

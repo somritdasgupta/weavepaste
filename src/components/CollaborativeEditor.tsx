@@ -3,439 +3,911 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Users, 
-  Copy, 
-  Download, 
-  Settings, 
+import {
+  SyncIndicator,
+  ContentSyncIndicator,
+  TypingIndicator,
+  ConnectionPulse,
+  type SyncStatus,
+} from "@/components/ui/loading-states";
+import {
+  Users,
+  Copy,
+  Menu,
+  X,
+  Activity,
   Clock,
-  Wifi,
   WifiOff,
-  Code,
-  FileText,
+  Monitor,
+  Maximize2,
+  Minimize2,
   LogOut,
-  Github,
   QrCode,
-  RefreshCw,
   Share,
-  Clipboard
+  UserX,
+  History,
+  Edit,
+  Trash,
+  Send,
+  Code,
+  Type,
+  Expand,
+  Minimize,
 } from "lucide-react";
 import { useSession } from "@/hooks/useSession";
 import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
+import { generateDeviceName } from "@/lib/deviceNames";
 
 interface CollaborativeEditorProps {
   sessionCode?: string;
   onLeave?: () => void;
 }
 
-const CollaborativeEditor = ({ sessionCode, onLeave }: CollaborativeEditorProps) => {
+const CollaborativeEditor = ({
+  sessionCode,
+  onLeave,
+}: CollaborativeEditorProps) => {
   const [content, setContent] = useState("");
-  const [contentType, setContentType] = useState<"text" | "code">("text");
-  const [clipboardPermission, setClipboardPermission] = useState<"granted" | "denied" | "prompt">("prompt");
-  const { session, users, updateContent, leaveSession } = useSession();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
+  const [copyHistory, setCopyHistory] = useState<
+    Array<{ id: string; content: string; timestamp: Date }>
+  >([]);
+
+  // Floating editor state
+  const [currentText, setCurrentText] = useState("");
+  const [isEditorExpanded, setIsEditorExpanded] = useState(false);
+  const [isCodeMode, setIsCodeMode] = useState(false);
+  const [wordWrap, setWordWrap] = useState(true);
+  const [showLineNumbers, setShowLineNumbers] = useState(false);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
+  const {
+    session,
+    users,
+    updateContent,
+    isReconnecting,
+    kickUser,
+    currentUser,
+  } = useSession(sessionCode);
   const { toast } = useToast();
-  
-  // Use session from props or hook
-  const currentSession = session;
-  const currentCode = sessionCode || currentSession?.session_code || "DEMO123";
-  
-  const [timeRemaining, setTimeRemaining] = useState("5h 23m");
-  const [isOnline] = useState(true);
 
-  // Update content when session content changes
+  // Load copy history from localStorage on component mount
   useEffect(() => {
-    if (currentSession?.content !== undefined) {
-      setContent(currentSession.content);
-      setContentType(currentSession.content_type);
-    }
-  }, [currentSession?.content, currentSession?.content_type]);
-
-  // Calculate time remaining
-  useEffect(() => {
-    if (!currentSession?.expires_at) return;
-
-    const updateTimeRemaining = () => {
-      const now = new Date();
-      const expiresAt = new Date(currentSession.expires_at);
-      const diff = expiresAt.getTime() - now.getTime();
-      
-      if (diff <= 0) {
-        setTimeRemaining("Expired");
-        return;
+    const savedHistory = localStorage.getItem(
+      `copyHistory_${sessionCode || session?.session_code}`
+    );
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory);
+        // Convert timestamp strings back to Date objects
+        const historyWithDates = parsed.map(
+          (item: { id: string; content: string; timestamp: string }) => ({
+            ...item,
+            timestamp: new Date(item.timestamp),
+          })
+        );
+        setCopyHistory(historyWithDates);
+      } catch (error) {
+        console.error("Failed to load copy history:", error);
       }
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      setTimeRemaining(`${hours}h ${minutes}m`);
+    }
+  }, [sessionCode, session?.session_code]);
+
+  // Save copy history to localStorage whenever it changes
+  useEffect(() => {
+    if (copyHistory.length > 0 && (sessionCode || session?.session_code)) {
+      localStorage.setItem(
+        `copyHistory_${sessionCode || session?.session_code}`,
+        JSON.stringify(copyHistory)
+      );
+    }
+  }, [copyHistory, sessionCode, session?.session_code]);
+
+  // Generate invite link
+  const inviteLink =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/join/${sessionCode || session?.session_code}`
+      : "";
+
+  // Connection status detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsConnected(true);
+      setSyncStatus("success");
+      setTimeout(() => setSyncStatus("idle"), 2000);
     };
 
-    updateTimeRemaining();
-    const interval = setInterval(updateTimeRemaining, 60000); // Update every minute
+    const handleOffline = () => {
+      setIsConnected(false);
+      setSyncStatus("offline");
+    };
 
-    return () => clearInterval(interval);
-  }, [currentSession?.expires_at]);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    setIsConnected(navigator.onLine);
 
-  const handleContentChange = useCallback((value: string) => {
-    setContent(value);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
-  // Separate effect for debounced content updates
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      updateContent(content, contentType);
-    }, 500);
+  const handleContentChange = useCallback(
+    async (newContent: string) => {
+      setContent(newContent);
+      setIsUploading(true);
+      setSyncStatus("syncing");
 
-    return () => clearTimeout(timeoutId);
-  }, [content, contentType, updateContent]);
+      try {
+        await updateContent?.(newContent);
+        setSyncStatus("success");
+        setIsUploading(false);
+        setTimeout(() => setSyncStatus("idle"), 2000);
+      } catch (error) {
+        setSyncStatus("error");
+        setIsUploading(false);
+        console.error("Failed to sync content:", error);
+      }
+    },
+    [updateContent]
+  );
 
   const copyContent = () => {
     navigator.clipboard.writeText(content);
-    toast({
-      title: "Copied!",
-      description: "Content copied to clipboard",
-    });
-  };
 
-  const downloadContent = () => {
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `weavepaste-${currentCode}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({
-      title: "Downloaded!",
-      description: `File saved as weavepaste-${currentCode}.txt`,
-    });
-  };
-
-  const formatContent = () => {
-    // Auto-format based on content type
-    if (contentType === "code") {
-      // Basic formatting - trim whitespace
-      const formatted = content.trim();
-      setContent(formatted);
-      updateContent(formatted, contentType);
-      toast({
-        title: "Formatted",
-        description: "Code has been formatted",
-      });
-    }
-  };
-
-  const handleLeave = async () => {
-    await leaveSession();
-    onLeave?.();
-    toast({
-      title: "Left Session",
-      description: "You have left the collaborative session",
-    });
-  };
-
-  const handleContentTypeChange = (newType: "text" | "code") => {
-    setContentType(newType);
-    updateContent(content, newType);
-  };
-
-  // Clipboard auto-detection and sync
-  useEffect(() => {
-    const checkClipboardPermission = async () => {
-      try {
-        const permission = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName });
-        setClipboardPermission(permission.state);
-      } catch (error) {
-        console.log('Clipboard permission check not supported');
-      }
+    // Add to copy history
+    const newHistoryItem = {
+      id: Date.now().toString(),
+      content: content,
+      timestamp: new Date(),
     };
-    
-    checkClipboardPermission();
-  }, []);
+    setCopyHistory((prev) => [newHistoryItem, ...prev.slice(0, 9)]); // Keep last 10 items
 
-  const syncClipboard = async () => {
-    try {
-      const clipboardText = await navigator.clipboard.readText();
-      if (clipboardText && clipboardText !== content) {
-        setContent(clipboardText);
-        updateContent(clipboardText, contentType);
-        toast({
-          title: "Clipboard Synced! 📋",
-          description: "Content from clipboard has been added",
-        });
-      }
-    } catch (error) {
+    // Removed toast notification for simple copy action
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+
+    // Add to copy history
+    const newHistoryItem = {
+      id: Date.now().toString(),
+      content: text,
+      timestamp: new Date(),
+    };
+    setCopyHistory((prev) => [newHistoryItem, ...prev.slice(0, 9)]); // Keep last 10 items
+
+    // Removed toast notification for simple copy action
+  };
+
+  const handleKickUser = async (userId: string, userName: string) => {
+    if (!kickUser) return;
+
+    const success = await kickUser(userId);
+    if (success) {
       toast({
-        title: "Clipboard Access Denied",
-        description: "Please grant clipboard permissions to enable auto-sync",
+        title: "User removed",
+        description: `${userName} has been removed from the session`,
+      });
+    } else {
+      toast({
+        title: "Failed to remove user",
+        description: "Could not remove user from session",
         variant: "destructive",
       });
     }
   };
 
-  const shareContent = async () => {
-    try {
-      if (navigator.share && content.trim()) {
-        await navigator.share({
-          title: 'WeavePaste Content',
-          text: content,
-        });
-      } else {
-        await navigator.clipboard.writeText(content);
-        toast({
-          title: "Copied to Share! 📤",
-          description: "Content copied to clipboard for sharing",
-        });
-      }
-    } catch (error) {
-      console.log('Share failed, copying to clipboard instead');
-      await navigator.clipboard.writeText(content);
-      toast({
-        title: "Copied! 📋",
-        description: "Content copied to clipboard",
-      });
+  const clearCopyHistory = () => {
+    setCopyHistory([]);
+    if (sessionCode || session?.session_code) {
+      localStorage.removeItem(
+        `copyHistory_${sessionCode || session?.session_code}`
+      );
     }
+    // Removed toast notification for history clear action
   };
 
-  // Auto-detect clipboard changes (with user permission)
-  useEffect(() => {
-    if (clipboardPermission !== 'granted') return;
+  // Floating editor functions
+  const handleSendText = useCallback(async () => {
+    if (!currentText.trim()) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const clipboardText = await navigator.clipboard.readText();
-        if (clipboardText && clipboardText !== content && clipboardText.length > 10) {
-          setContent(clipboardText);
-          updateContent(clipboardText, contentType);
-          toast({
-            title: "Auto-Sync! 🔄",
-            description: "New clipboard content detected and synced",
-          });
-        }
-      } catch (error) {
-        // Silently fail - clipboard access might be restricted
+    try {
+      const newHistoryItem = {
+        id: Date.now().toString(),
+        content: currentText,
+        timestamp: new Date(),
+      };
+
+      // Add to history
+      const updatedHistory = [newHistoryItem, ...copyHistory];
+      setCopyHistory(updatedHistory);
+
+      // Save to localStorage
+      if (sessionCode || session?.session_code) {
+        localStorage.setItem(
+          `copyHistory_${sessionCode || session?.session_code}`,
+          JSON.stringify(updatedHistory)
+        );
       }
-    }, 3000); // Check every 3 seconds
 
-    return () => clearInterval(interval);
-  }, [clipboardPermission, content, contentType, updateContent]);
+      // Copy to clipboard
+      await navigator.clipboard.writeText(currentText);
+
+      // Clear text after sending
+      setCurrentText("");
+
+      toast({
+        title: "Text synced",
+        description: "Content synced to all devices",
+      });
+    } catch (error) {
+      console.error("Error syncing text:", error);
+      toast({
+        title: "Sync failed",
+        description: "Could not sync text to session",
+        variant: "destructive",
+      });
+    }
+  }, [currentText, copyHistory, sessionCode, session?.session_code, toast]);
+
+  // Auto-sync effect
+  useEffect(() => {
+    if (!autoSyncEnabled || !currentText.trim()) return;
+
+    const autoSyncTimer = setTimeout(() => {
+      handleSendText();
+    }, 2000); // Auto-sync after 2 seconds of no typing
+
+    return () => clearTimeout(autoSyncTimer);
+  }, [currentText, autoSyncEnabled, handleSendText]);
+
+  const copyInviteLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      // Removed excessive success toast
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = inviteLink;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        // Removed excessive success toast
+      } catch (fallbackErr) {
+        toast({
+          title: "Copy failed",
+          description: "Please copy the link manually",
+          variant: "destructive",
+        });
+      }
+      document.body.removeChild(textArea);
+    }
+  }, [inviteLink, toast]);
+
+  // Enhanced share functionality with native sharing API
+  const shareSession = useCallback(async () => {
+    const shareData = {
+      title: "Join my Live Collaboration Session",
+      text: "Come collaborate with me in real-time!",
+      url: inviteLink,
+    };
+
+    try {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback to copy
+        await copyInviteLink();
+      }
+    } catch (err) {
+      // User cancelled or error occurred, fallback to copy
+      await copyInviteLink();
+    }
+  }, [inviteLink, copyInviteLink]);
+
+  // Update content when session content changes
+  useEffect(() => {
+    if (session?.content && session.content !== content) {
+      setContent(session.content);
+    }
+  }, [session?.content, content]);
 
   return (
-    <div className="min-h-screen p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto space-y-3 sm:space-y-6">
-        {/* Mobile Compact Header */}
-        <div className="flex items-center justify-between py-2">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <h1 className="text-lg sm:text-2xl font-bold">WeavePaste</h1>
-            <Badge variant="secondary" className="glass font-mono text-xs px-2 py-1">
-              {currentCode}
-            </Badge>
-          </div>
-          
-          <div className="flex items-center gap-1 sm:gap-3">
-            {isOnline ? (
-              <Wifi className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-            ) : (
-              <WifiOff className="w-3 h-3 sm:w-4 sm:h-4 text-destructive" />
-            )}
-            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="text-xs">{timeRemaining}</span>
-            </div>
-          </div>
+    <>
+      <div className="min-h-screen w-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-grid-white/10 bg-[size:50px_50px]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-6">
-          {/* Main Editor */}
-          <div className="lg:col-span-3 space-y-3 sm:space-y-4">
-            {/* Editor Controls */}
-            <Card className="glass-card p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                  <Button
-                    variant={contentType === "text" ? "glass" : "ghost"}
-                    size="sm"
-                    onClick={() => handleContentTypeChange("text")}
-                    className="h-8 px-2 sm:px-3"
-                  >
-                    <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Text</span>
-                  </Button>
-                  <Button
-                    variant={contentType === "code" ? "glass" : "ghost"}
-                    size="sm"
-                    onClick={() => handleContentTypeChange("code")}
-                    className="h-8 px-2 sm:px-3"
-                  >
-                    <Code className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Code</span>
-                  </Button>
-                  <Button 
-                    variant="glass" 
-                    size="sm" 
-                    onClick={syncClipboard}
-                    className="h-8 px-2 sm:px-3"
-                  >
-                    <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Sync</span>
-                  </Button>
-                </div>
-                
-                <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
-                  <Button variant="ghost" size="sm" onClick={formatContent} className="flex-1 sm:flex-none h-8 px-2 sm:px-3">
-                    <span className="text-xs sm:text-sm">Format</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={copyContent} className="h-8 px-2 sm:px-3">
-                    <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={downloadContent} className="h-8 px-2 sm:px-3">
-                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </Button>
-                  <Button variant="glass" size="sm" onClick={shareContent} className="h-8 px-2 sm:px-3">
-                    <Share className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
+        {/* Ambient background effects */}
+        <div className="absolute top-10 left-10 w-32 h-32 bg-accent/5 rounded-full blur-3xl animate-float" />
+        <div
+          className="absolute bottom-20 right-10 w-48 h-48 bg-accent/3 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        />
 
-            {/* Main Editor */}
-            <Card className="glass-card p-0 min-h-[50vh] sm:min-h-[60vh]">
-              <Textarea
-                value={content}
-                onChange={(e) => handleContentChange(e.target.value)}
-                placeholder="✨ Start typing or paste content here... Changes sync in real-time across all devices. Enable clipboard permissions for auto-sync!"
-                className="glass-input border-none resize-none min-h-[50vh] sm:min-h-[60vh] text-sm sm:text-base font-mono leading-relaxed p-3 sm:p-4"
-              />
-            </Card>
-            
-            {/* Mobile Quick Actions Bar */}
-            <div className="flex sm:hidden gap-2 px-2">
-              <Button variant="glass" size="sm" onClick={syncClipboard} className="flex-1 h-10">
-                <Clipboard className="w-4 h-4" />
-                Sync Clipboard
-              </Button>
-              <Button variant="glass" size="sm" onClick={shareContent} className="flex-1 h-10">
-                <Share className="w-4 h-4" />
-                Share
-              </Button>
-            </div>
-          </div>
-
-          {/* Sidebar - Hidden on mobile, shown as bottom section */}
-          <div className="space-y-3 sm:space-y-4">
-            {/* Connected Devices */}
-            <Card className="glass-card space-y-3 sm:space-y-4 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                  <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Connected Devices</span>
-                  <span className="sm:hidden">Devices</span>
-                </h3>
-                <Badge variant="secondary" className="glass text-xs">
-                  {users.length}
+        <div className="relative z-10 p-4 sm:p-6 w-full">
+          {/* Compact Header Card - Session Info & Share */}
+          <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl p-4 mb-6 hover:bg-white/15 transition-all duration-300">
+            <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap sm:flex-nowrap">
+              {/* Session Info - Compact */}
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <Badge
+                  variant="outline"
+                  className="text-sm sm:text-lg font-bold px-2 sm:px-3 py-1 sm:py-2 bg-white/20 backdrop-blur-sm border-white/30 text-white rounded-lg sm:rounded-xl break-all"
+                >
+                  {sessionCode || session?.session_code}
                 </Badge>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  {isConnected ? (
+                    <></>
+                  ) : (
+                    <>
+                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                      <span className="text-red-400 font-medium text-xs sm:text-sm">
+                        Offline
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-              
-              <div className="space-y-2 max-h-32 sm:max-h-none overflow-y-auto">
-                {users.length > 0 ? (
-                  users.map((user) => (
-                    <div key={user.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg bg-background/50">
-                      <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${user.color}`} />
-                      <span className="text-xs sm:text-sm font-medium truncate flex-1">{user.user_name}</span>
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent rounded-full animate-pulse" />
+
+              {/* Action Buttons - Icons Only */}
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                <Button
+                  onClick={copyInviteLink}
+                  size="sm"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white shadow-lg rounded-lg"
+                  title="Copy invite link"
+                >
+                  <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+                <QRCodeGenerator
+                  sessionCode={sessionCode || session?.session_code || ""}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                    title="Show QR code"
+                  >
+                    <QrCode className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                </QRCodeGenerator>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={shareSession}
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                  title="Share session"
+                >
+                  <Share className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+                {onLeave && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onLeave}
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-lg"
+                    title="Leave session"
+                  >
+                    <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Sync History Card */}
+          <div className="mb-8">
+            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 hover:bg-white/15 transition-all duration-300">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <History className="w-8 h-8 text-green-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-3">
+                  Sync History
+                </h2>
+                <p className="text-white/70 font-medium">
+                  Recent clipboard syncs across all devices
+                </p>
+              </div>
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {copyHistory.length > 0 ? (
+                  copyHistory.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 group"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-white/50">
+                              #{index + 1}
+                            </span>
+                            <span className="text-xs text-white/60">
+                              {item.timestamp.toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <p className="text-white text-sm font-medium leading-relaxed">
+                            {item.content.length > 80
+                              ? item.content.slice(0, 80) + "..."
+                              : item.content}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(item.content)}
+                            className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentText(item.content)}
+                            className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs sm:text-sm text-muted-foreground">No other users connected</p>
+                  <div className="text-center py-12">
+                    <p className="text-white/50 font-medium">
+                      Nothing synced yet. Your recent clipboard syncs will
+                      appear here.
+                    </p>
+                  </div>
                 )}
               </div>
-            </Card>
 
-            {/* Session Info */}
-            <Card className="glass-card space-y-3 sm:space-y-4 p-4 sm:p-6">
-              <h3 className="text-sm sm:text-base font-semibold">Session Details</h3>
-              <div className="grid grid-cols-2 sm:block sm:space-y-2 gap-2 text-xs sm:text-sm">
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-muted-foreground">Created</span>
-                  <span className="text-xs">{currentSession?.created_at ? new Date(currentSession.created_at).toLocaleTimeString() : 'Just now'}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-muted-foreground">Expires</span>
-                  <span className="text-xs">{timeRemaining}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-muted-foreground">Characters</span>
-                  <span className="text-xs">{content.length.toLocaleString()}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between">
-                  <span className="text-muted-foreground">Lines</span>
-                  <span className="text-xs">{content.split('\n').length}</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="glass-card space-y-3 p-4 sm:p-6">
-              <h3 className="text-sm sm:text-base font-semibold">Actions</h3>
-              <div className="grid grid-cols-1 sm:space-y-2 gap-2">
-                <Button variant="glass" size="sm" className="w-full justify-start h-8 sm:h-9">
-                  <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="text-xs sm:text-sm">Settings</span>
-                </Button>
-                
-                <QRCodeGenerator sessionCode={currentCode}>
-                  <Button variant="glass" size="sm" className="w-full justify-start h-8 sm:h-9">
-                    <QrCode className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="text-xs sm:text-sm">Share QR</span>
+              {copyHistory.length > 0 && (
+                <div className="flex gap-3 mt-6 pt-6 border-t border-white/20">
+                  <Button
+                    variant="outline"
+                    onClick={clearCopyHistory}
+                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400"
+                  >
+                    <Trash className="w-4 h-4 mr-2" />
+                    Clear History
                   </Button>
-                </QRCodeGenerator>
-                
-                <Button variant="glass" size="sm" onClick={syncClipboard} className="w-full justify-start h-8 sm:h-9">
-                  <Clipboard className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="text-xs sm:text-sm">Sync Clipboard</span>
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start text-destructive h-8 sm:h-9"
-                  onClick={handleLeave}
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const allContent = copyHistory
+                        .map((item) => item.content)
+                        .join("\n\n---\n\n");
+                      copyToClipboard(allContent);
+                    }}
+                    className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy All
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Device Management & Session Stats */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-24">
+            {/* Added mb-24 for floating editor space */}
+            {/* Connected Devices */}
+            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 hover:bg-white/15 transition-all duration-300">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-purple-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Connected Devices
+                </h3>
+                <p className="text-white/70 font-medium">
+                  {users.length} device{users.length !== 1 ? "s" : ""} online
+                </p>
+              </div>
+
+              <div className="space-y-4 max-h-64 overflow-y-auto">
+                {users.length > 0 ? (
+                  users.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/15 transition-all duration-200"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent/80 to-accent/60 flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">
+                          {user.user_name?.slice(0, 2).toUpperCase() || "UN"}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-white">
+                          {user.user_name}
+                          {user.id === currentUser?.id && (
+                            <span className="text-xs text-white/60 ml-2 font-medium">
+                              (You)
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                          <span className="text-green-400 font-medium">
+                            Active now
+                          </span>
+                        </div>
+                      </div>
+                      {user.id !== currentUser?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleKickUser(user.id, user.user_name)
+                          }
+                          className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400"
+                          title={`Remove ${user.user_name} from session`}
+                        >
+                          <UserX className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="w-12 h-12 mx-auto text-white/30 mb-4" />
+                    <p className="text-white/50 font-medium">
+                      Only you are online
+                    </p>
+                    <p className="text-xs text-white/40 mt-2 font-medium">
+                      Share the session code to invite others
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Session Actions */}
+              <div className="flex gap-3 mt-8 pt-6 border-t border-white/20">
+                <Button
+                  variant="outline"
+                  onClick={onLeave}
+                  className="flex-1 h-12 text-lg font-bold bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-none shadow-xl rounded-2xl"
                 >
-                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="text-xs sm:text-sm">Leave Session</span>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Leave Session
                 </Button>
               </div>
             </Card>
+
+            {/* Session Statistics */}
+            <Card className="glass-card backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-3xl p-8 hover:bg-white/15 transition-all duration-300">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Activity className="w-8 h-8 text-blue-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Session Stats
+                </h3>
+                <p className="text-white/70 font-medium">
+                  Real-time session information
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Session Started */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-500/20 rounded-xl flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-green-400" />
+                    </div>
+                    <span className="text-white font-medium">
+                      Session Started
+                    </span>
+                  </div>
+                  <span className="text-white/70 font-semibold">
+                    {session?.created_at
+                      ? new Date(session.created_at).toLocaleTimeString()
+                      : "--:--"}
+                  </span>
+                </div>
+
+                {/* Session Duration */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                      <Activity className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <span className="text-white font-medium">
+                      Active Duration
+                    </span>
+                  </div>
+                  <span className="text-white/70 font-semibold">
+                    {session?.created_at
+                      ? Math.floor(
+                          (Date.now() -
+                            new Date(session.created_at).getTime()) /
+                            (1000 * 60)
+                        ) + " min"
+                      : "0 min"}
+                  </span>
+                </div>
+
+                {/* Total Syncs */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                      <History className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <span className="text-white font-medium">Total Syncs</span>
+                  </div>
+                  <span className="text-white/70 font-semibold">
+                    {copyHistory.length}
+                  </span>
+                </div>
+
+                {/* Session Expires */}
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-orange-400" />
+                    </div>
+                    <span className="text-white font-medium">Expires In</span>
+                  </div>
+                  <span className="text-white/70 font-semibold">
+                    {session?.expires_at
+                      ? Math.floor(
+                          (new Date(session.expires_at).getTime() -
+                            Date.now()) /
+                            (1000 * 60 * 60)
+                        ) + " hrs"
+                      : "24 hrs"}
+                  </span>
+                </div>
+              </div>
+            </Card>
           </div>
-        </div>
-        
-        {/* Footer */}
-        <footer className="mt-8 pt-6 border-t border-border/30">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <span>Made by</span>
-              <a 
-                href="https://github.com/somritdasgupta" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-accent hover:text-accent/80 transition-colors font-medium"
-              >
-                Somrit Dasgupta
-              </a>
-            </div>
-            <a 
-              href="https://github.com/somritdasgupta" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-accent hover:text-accent/80 transition-colors"
+
+          {/* Floating Text Editor - Bottom */}
+          <div className="fixed bottom-4 left-4 right-4 z-40">
+            {/* Minimized State - Compact Editor */}
+            {!isEditorExpanded && (
+              <div className="relative">
+                <textarea
+                  value={currentText}
+                  onChange={(e) => setCurrentText(e.target.value)}
+                  placeholder="Type your message..."
+                  className="w-full h-16 sm:h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 pr-24 text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 shadow-2xl"
+                  style={{
+                    fontSize: "clamp(0.875rem, 2.5vw, 1.125rem)",
+                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                      e.preventDefault();
+                      handleSendText();
+                    }
+                  }}
+                />
+
+                {/* Button Container */}
+                <div className="absolute top-2 right-2 flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsCodeMode(!isCodeMode)}
+                    className="h-6 w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                    title={isCodeMode ? "Text Mode" : "Code Mode"}
+                  >
+                    {isCodeMode ? (
+                      <Type className="w-3 h-3" />
+                    ) : (
+                      <Code className="w-3 h-3" />
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentText("")}
+                    disabled={!currentText.trim()}
+                    className="h-6 w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-lg"
+                    title="Clear"
+                  >
+                    <Trash className="w-3 h-3" />
+                  </Button>
+
+                  <Button
+                    onClick={handleSendText}
+                    size="sm"
+                    className="h-6 w-6 p-0 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                    disabled={!currentText.trim()}
+                    title="Sync"
+                  >
+                    <Send className="w-3 h-3" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditorExpanded(true)}
+                    className="h-6 w-6 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                    title="Expand"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </Button>
+                </div>
+
+                {/* Bottom Button Container */}
+                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                  <span className="text-xs text-white/50">
+                    {currentText.length}
+                  </span>
+                  <SyncIndicator status={syncStatus} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Expanded State - Full Screen (Outside Card Structure) */}
+          {isEditorExpanded && (
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              style={{ zIndex: 9999 }}
             >
-              <Github className="w-4 h-4" />
-              @somritdasgupta
-            </a>
-          </div>
-        </footer>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-purple-900/10 to-pink-900/10" />
+
+              <div className="relative h-screen flex flex-col">
+                {/* Expanded Header */}
+                <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-white/10 backdrop-blur-xl">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                      <Type className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
+                    </div>
+                    <span className="text-sm sm:text-lg font-bold text-white">
+                      Editor
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Mode Switch */}
+                    <Button
+                      variant={isCodeMode ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setIsCodeMode(!isCodeMode)}
+                      className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                      title={isCodeMode ? "Text Mode" : "Code Mode"}
+                    >
+                      {isCodeMode ? (
+                        <Type className="w-4 h-4" />
+                      ) : (
+                        <Code className="w-4 h-4" />
+                      )}
+                    </Button>
+
+                    {/* Clear */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentText("")}
+                      disabled={!currentText.trim()}
+                      className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-red-500/20 hover:border-red-400 rounded-lg"
+                      title="Clear"
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+
+                    {/* Sync */}
+                    <Button
+                      onClick={handleSendText}
+                      disabled={!currentText.trim()}
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg"
+                      title="Sync"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+
+                    {/* Minimize */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditorExpanded(false)}
+                      className="h-8 w-8 p-0 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 rounded-lg"
+                      title="Minimize"
+                    >
+                      <Minimize2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Text Area */}
+                <div className="flex-1 p-2 sm:p-4">
+                  <div className="relative h-full">
+                    {/* Line Numbers (for code mode and when enabled) */}
+                    {(isCodeMode || showLineNumbers) && (
+                      <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-10 bg-white/5 flex flex-col text-xs text-white/40 font-mono select-none">
+                        {currentText.split("\n").map((_, index) => (
+                          <div
+                            key={index}
+                            className="h-5 sm:h-6 flex items-center justify-end pr-1 border-r border-white/10"
+                            style={{ lineHeight: isCodeMode ? "1.4" : "1.5" }}
+                          >
+                            {index + 1}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <textarea
+                      value={currentText}
+                      onChange={(e) => setCurrentText(e.target.value)}
+                      placeholder={
+                        isCodeMode
+                          ? "// Write your code here..."
+                          : "Type your message here..."
+                      }
+                      className={`w-full h-full bg-transparent text-white placeholder-white/50 border-none outline-none resize-none font-medium ${
+                        isCodeMode ? "font-mono" : ""
+                      } ${
+                        isCodeMode || showLineNumbers
+                          ? "pl-10 sm:pl-12"
+                          : "pl-0"
+                      } ${wordWrap ? "whitespace-pre-wrap" : "whitespace-pre"}`}
+                      style={{
+                        fontSize: "clamp(14px, 3vw, 20px)",
+                        lineHeight: isCodeMode ? "1.4" : "1.5",
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                          e.preventDefault();
+                          handleSendText();
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Editor Footer */}
+                <div className="flex items-center justify-between border-t border-white/20 bg-white/5 backdrop-blur-sm p-2 sm:p-3">
+                  <div className="flex items-center gap-4 text-xs sm:text-sm text-white/70">
+                    <span>{currentText.length} chars</span>
+                    <span>{currentText.split("\n").length} lines</span>
+                    {autoSyncEnabled && (
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-green-400">Auto-sync</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <SyncIndicator status={syncStatus} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+      <Toaster />
+    </>
   );
 };
 

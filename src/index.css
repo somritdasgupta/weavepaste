@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Glassmorphism Pastebin Design System - Vercel Inspired */
+/* Modern WeavePaste Design System */
 
 @layer base {
   :root {
@@ -10,11 +10,12 @@
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
-    /* Glass surfaces */
+    /* Glass surfaces with enhanced depth */
     --glass-primary: 240 10% 8%;
     --glass-secondary: 240 8% 12%;
     --glass-tertiary: 240 6% 16%;
-    
+    --glass-subtle: 240 12% 6%;
+
     /* Card surfaces with glass effect */
     --card: 240 10% 8%;
     --card-foreground: 0 0% 98%;
@@ -22,7 +23,7 @@
     --popover: 240 10% 8%;
     --popover-foreground: 0 0% 98%;
 
-    /* Accent system */
+    /* Enhanced accent system for clipboard sync */
     --primary: 0 0% 98%;
     --primary-foreground: 240 10% 3.9%;
 
@@ -34,44 +35,71 @@
 
     --accent: 142 76% 36%;
     --accent-foreground: 0 0% 98%;
+    --accent-light: 142 76% 45%;
+    --accent-dark: 142 76% 28%;
+
+    /* Clipboard sync specific colors */
+    --sync-success: 142 76% 36%;
+    --sync-pending: 48 96% 53%;
+    --sync-error: 0 84% 60%;
+    --sync-offline: 240 5% 50%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Borders and inputs with glass effect */
+    /* Enhanced borders and inputs */
     --border: 240 6% 20%;
     --input: 240 8% 12%;
     --ring: 142 76% 36%;
 
     --radius: 0.75rem;
 
-    /* Glass effects */
+    /* Enhanced glass effects with more depth */
     --glass-bg: 240 10% 8% / 0.6;
     --glass-border: 240 20% 50% / 0.1;
     --glass-backdrop: blur(16px);
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(240 10% 8% / 0.8), hsl(240 8% 12% / 0.6));
-    --gradient-accent: linear-gradient(135deg, hsl(142 76% 36% / 0.1), hsl(142 76% 36% / 0.05));
-    
-    /* Shadows */
+    --glass-light: 240 15% 15% / 0.7;
+    --glass-dark: 240 8% 5% / 0.8;
+
+    /* Enhanced gradients for clipboard sync */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(240 10% 8% / 0.8),
+      hsl(240 8% 12% / 0.6)
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(142 76% 36% / 0.1),
+      hsl(142 76% 36% / 0.05)
+    );
+    --gradient-sync: linear-gradient(
+      135deg,
+      hsl(142 76% 36% / 0.2),
+      hsl(240 10% 8% / 0.8),
+      hsl(142 76% 36% / 0.2)
+    );
+    --gradient-glow: radial-gradient(
+      circle at center,
+      hsl(142 76% 36% / 0.3),
+      transparent 70%
+    );
+
+    /* Enhanced shadows with depth */
     --shadow-glass: 0 8px 32px 0 hsl(240 10% 3.9% / 0.3);
-    --shadow-glow: 0 0 0 1px hsl(240 20% 50% / 0.1), 0 2px 4px 0 hsl(240 10% 3.9% / 0.1);
+    --shadow-glow: 0 0 0 1px hsl(240 20% 50% / 0.1),
+      0 2px 4px 0 hsl(240 10% 3.9% / 0.1);
+    --shadow-elevation: 0 12px 40px 0 hsl(240 10% 3.9% / 0.4),
+      0 4px 16px 0 hsl(240 10% 3.9% / 0.2);
+    --shadow-sync: 0 0 20px hsl(142 76% 36% / 0.3),
+      0 4px 12px hsl(240 10% 3.9% / 0.2);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -122,11 +150,71 @@
   body {
     @apply bg-background text-foreground font-mono;
     background: 
-      linear-gradient(90deg, hsl(240 6% 20% / 0.03) 1px, transparent 1px),
+      /* Subtle grid pattern */ linear-gradient(
+        90deg,
+        hsl(240 6% 20% / 0.03) 1px,
+        transparent 1px
+      ),
       linear-gradient(0deg, hsl(240 6% 20% / 0.03) 1px, transparent 1px),
-      radial-gradient(ellipse at top, hsl(240 10% 8% / 0.6), hsl(240 10% 3.9%));
-    background-size: 20px 20px, 20px 20px, 100% 100%;
+      /* Clipboard sync visual metaphor - data flow lines */
+        linear-gradient(
+          45deg,
+          transparent 40%,
+          hsl(142 76% 36% / 0.02) 50%,
+          transparent 60%
+        ),
+      linear-gradient(
+        -45deg,
+        transparent 40%,
+        hsl(142 76% 36% / 0.02) 50%,
+        transparent 60%
+      ),
+      /* Main gradient background */
+        radial-gradient(
+          ellipse at top left,
+          hsl(142 76% 36% / 0.05),
+          transparent 50%
+        ),
+      radial-gradient(
+        ellipse at bottom right,
+        hsl(240 10% 8% / 0.8),
+        transparent 50%
+      ),
+      linear-gradient(180deg, hsl(240 10% 3.9%), hsl(240 12% 6%));
+    background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px, 100% 100%,
+      100% 100%, 100% 100%;
+    background-attachment: fixed;
     min-height: 100vh;
+    position: relative;
+  }
+
+  /* Add floating particles for clipboard sync ambiance */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at 20% 30%,
+        hsl(142 76% 36% / 0.03) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        hsl(142 76% 36% / 0.03) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 40% 80%,
+        hsl(142 76% 36% / 0.02) 1px,
+        transparent 1px
+      );
+    background-size: 200px 200px, 150px 150px, 300px 300px;
+    animation: float 20s linear infinite;
+    pointer-events: none;
+    z-index: -1;
   }
 }
 
@@ -136,23 +224,70 @@
     @apply backdrop-blur-md bg-card/60 border border-white/10;
     box-shadow: var(--shadow-glow);
   }
-  
+
   .glass-card {
     @apply glass rounded-xl p-6;
     background: var(--gradient-primary);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 hsl(240 10% 3.9% / 0.4);
+  }
+
   .glass-input {
     @apply glass border-white/20 bg-input/40 text-foreground placeholder:text-muted-foreground;
+    transition: all 0.3s ease;
   }
-  
+
+  .glass-input:focus {
+    @apply border-accent/40 bg-input/60;
+    box-shadow: 0 0 0 3px hsl(var(--accent) / 0.1);
+  }
+
+  /* Enhanced glass variants */
+  .glass-elevated {
+    @apply glass;
+    background: linear-gradient(
+      135deg,
+      hsl(240 10% 8% / 0.9),
+      hsl(240 8% 12% / 0.7)
+    );
+    box-shadow: 0 8px 32px 0 hsl(240 10% 3.9% / 0.3),
+      inset 0 1px 0 hsl(240 20% 50% / 0.2);
+  }
+
+  .glass-subtle {
+    @apply backdrop-blur-sm bg-card/30 border border-white/5;
+    box-shadow: 0 4px 16px 0 hsl(240 10% 3.9% / 0.2);
+  }
+
+  .glass-intense {
+    @apply backdrop-blur-xl bg-card/80 border border-white/20;
+    box-shadow: 0 16px 64px 0 hsl(240 10% 3.9% / 0.4),
+      inset 0 1px 0 hsl(240 20% 50% / 0.3);
+  }
+
   /* Animation utilities */
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
-  
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -166,13 +301,527 @@
       box-shadow: 0 0 40px hsl(var(--accent) / 0.6);
     }
   }
-  
+
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
       transform: translateY(-10px);
     }
   }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Utility classes for enhanced clipboard sync UX */
+  .glass-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px 0 hsl(240 10% 3.9% / 0.3);
+  }
+
+  .sync-pulse {
+    animation: syncPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .clipboard-ready {
+    @apply ring-2 ring-accent/30 ring-offset-2 ring-offset-background;
+    animation: clipboardReady 1.5s ease-in-out infinite;
+  }
+
+  .sync-indicator {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sync-indicator::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--sync-success) / 0.2),
+      transparent
+    );
+    animation: syncSweep 2s ease-in-out infinite;
+  }
+
+  .device-connection {
+    animation: devicePulse 3s ease-in-out infinite;
+  }
+
+  .typing-indicator {
+    animation: typingPulse 1.5s ease-in-out infinite;
+  }
+
+  .content-sync {
+    transition: all 0.2s ease-out;
+  }
+
+  .content-sync.syncing {
+    box-shadow: 0 0 0 2px hsl(var(--sync-pending) / 0.3);
+    animation: contentSync 1s ease-in-out;
+  }
+
+  .glass-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-shimmer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(240 20% 50% / 0.1),
+      transparent
+    );
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Mobile-specific enhancements */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .mobile-friendly {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .mobile-text-input {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Responsive glassmorphism adjustments */
+  @media (max-width: 768px) {
+    .glass-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .glass-hover:hover {
+      transform: translateY(-0.5px);
+    }
+
+    /* Reduce motion for mobile users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+      .animate-float,
+      .animate-pulse,
+      .animate-glow,
+      .sync-pulse,
+      .device-connection {
+        animation: none;
+      }
+    }
+  }
+
+  /* Improved touch targets for mobile */
+  @media (max-width: 768px) {
+    button {
+      min-height: 44px;
+    }
+
+    input {
+      min-height: 44px;
+    }
+
+    textarea {
+      min-height: 120px;
+    }
+  }
+
+  /* Animation keyframes for clipboard sync feedback */
+  @keyframes syncPulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes clipboardReady {
+    0%,
+    100% {
+      ring-opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      ring-opacity: 0.6;
+      transform: scale(1.005);
+    }
+  }
+
+  @keyframes syncSweep {
+    0% {
+      left: -100%;
+    }
+    50%,
+    100% {
+      left: 100%;
+    }
+  }
+
+  @keyframes devicePulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 hsl(var(--sync-success) / 0.4);
+      transform: scale(1);
+    }
+    25% {
+      box-shadow: 0 0 0 3px hsl(var(--sync-success) / 0.2);
+      transform: scale(1.01);
+    }
+    50% {
+      box-shadow: 0 0 0 6px hsl(var(--sync-success) / 0.1);
+      transform: scale(1);
+    }
+  }
+
+  @keyframes typingPulse {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes contentSync {
+    0% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(1.01);
+    }
+    50% {
+      transform: scale(1.005);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      left: -100%;
+    }
+    50%,
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Additional animations for loading states */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-25%);
+    }
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  /* Enhanced Fluid Responsive Layout System */
+  .fluid-container {
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .fluid-grid {
+    display: grid;
+    transition: grid-template-columns 0.3s ease, gap 0.3s ease;
+  }
+
+  /* Ultra-smooth transitions for all interactive elements */
+  .glass-card,
+  .glass-hover,
+  [class*="glass-"] {
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    will-change: transform, opacity, backdrop-filter;
+  }
+
+  /* Fluid spacing system */
+  .fluid-spacing {
+    transition: padding 0.3s ease, margin 0.3s ease;
+  }
+
+  /* Enhanced responsive breakpoints */
+  @media (max-width: 320px) {
+    .container {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+
+    .glass-card {
+      border-radius: 1rem;
+      backdrop-filter: blur(12px);
+    }
+  }
+
+  @media (min-width: 321px) and (max-width: 480px) {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+
+    .glass-card {
+      backdrop-filter: blur(16px);
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  @media (min-width: 1025px) and (max-width: 1440px) {
+    .container {
+      padding-left: 3rem;
+      padding-right: 3rem;
+    }
+
+    .glass-card {
+      backdrop-filter: blur(20px);
+    }
+  }
+
+  @media (min-width: 1441px) and (max-width: 2560px) {
+    .container {
+      padding-left: 4rem;
+      padding-right: 4rem;
+    }
+  }
+
+  @media (min-width: 2561px) {
+    .container {
+      padding-left: 6rem;
+      padding-right: 6rem;
+    }
+
+    .glass-card {
+      backdrop-filter: blur(24px);
+    }
+  }
+
+  /* Fluid typography system */
+  @media (max-width: 480px) {
+    .text-responsive {
+      font-size: clamp(0.875rem, 2.5vw, 1rem);
+    }
+
+    .text-lg-responsive {
+      font-size: clamp(1rem, 3vw, 1.125rem);
+    }
+
+    .text-xl-responsive {
+      font-size: clamp(1.125rem, 4vw, 1.25rem);
+    }
+
+    .text-2xl-responsive {
+      font-size: clamp(1.25rem, 5vw, 1.5rem);
+    }
+  }
+
+  @media (min-width: 481px) {
+    .text-responsive {
+      font-size: clamp(1rem, 1.5vw, 1.125rem);
+    }
+
+    .text-lg-responsive {
+      font-size: clamp(1.125rem, 2vw, 1.25rem);
+    }
+
+    .text-xl-responsive {
+      font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    }
+
+    .text-2xl-responsive {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+    }
+  }
+
+  /* Smooth layout transitions for grid changes */
+  .lg\\:grid-cols-4 {
+    transition: grid-template-columns 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  /* Enhanced mobile sidebar transitions */
+  .mobile-sidebar {
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+  }
+
+  /* Fluid editor resize */
+  .mobile-text-input {
+    transition: height 0.3s ease, padding 0.3s ease;
+  }
+
+  /* Container query support for ultra-responsive design */
+  @container (max-width: 400px) {
+    .container-responsive {
+      --spacing: 0.5rem;
+    }
+  }
+
+  @container (min-width: 401px) and (max-width: 800px) {
+    .container-responsive {
+      --spacing: 1rem;
+    }
+  }
+
+  @container (min-width: 801px) {
+    .container-responsive {
+      --spacing: 1.5rem;
+    }
+  }
+
+  /* Accessibility enhancements */
+  @media (prefers-reduced-motion: reduce) {
+    .fluid-container,
+    .fluid-grid,
+    .glass-card,
+    .glass-hover,
+    [class*="glass-"],
+    .mobile-sidebar,
+    .mobile-text-input {
+      transition: none;
+    }
+  }
+
+  /* High DPI display optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+    .glass-card {
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+  }
+}
+
+/* Grid background pattern */
+.bg-grid-white\/10 {
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+}
+
+/* Bold typography system */
+* {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif !important;
+  font-weight: 600 !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 900 !important;
+}
+
+.font-mono {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif !important;
+  font-weight: 700 !important;
+}
+
+button {
+  font-weight: 700 !important;
+}
+
+input,
+textarea {
+  font-weight: 600 !important;
 }
