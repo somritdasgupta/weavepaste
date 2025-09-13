@@ -25,7 +25,6 @@ CREATE TABLE public.session_users (
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.session_users ENABLE ROW LEVEL SECURITY;
 
--- Create policies for sessions (public access for demo)
 CREATE POLICY "Sessions are viewable by everyone" 
 ON public.sessions 
 FOR SELECT 

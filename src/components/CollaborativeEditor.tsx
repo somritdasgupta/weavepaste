@@ -655,7 +655,9 @@ const CollaborativeEditor = ({
                     <div className="w-6 h-6 md:w-8 md:h-8 bg-purple-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
                       <History className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
                     </div>
-                    <span className="text-white font-medium text-xs md:text-base">Total Syncs</span>
+                    <span className="text-white font-medium text-xs md:text-base">
+                      Total Syncs
+                    </span>
                   </div>
                   <span className="text-white/70 font-semibold text-xs md:text-base">
                     {copyHistory.length}
@@ -668,7 +670,9 @@ const CollaborativeEditor = ({
                     <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-500/20 rounded-lg md:rounded-xl flex items-center justify-center">
                       <Clock className="w-3 h-3 md:w-4 md:h-4 text-orange-400" />
                     </div>
-                    <span className="text-white font-medium text-xs md:text-base">Expires In</span>
+                    <span className="text-white font-medium text-xs md:text-base">
+                      Expires In
+                    </span>
                   </div>
                   <span className="text-white/70 font-semibold text-xs md:text-base">
                     {session?.expires_at

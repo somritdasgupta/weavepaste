@@ -21,7 +21,7 @@ const QRCodeGenerator = ({ sessionCode, children }: QRCodeGeneratorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  const joinURL = `${window.location.origin}?join=${sessionCode}`;
+  const joinURL = `${window.location.origin}/join/${sessionCode}`;
 
   useEffect(() => {
     if (isOpen && sessionCode) {
@@ -64,14 +64,14 @@ const QRCodeGenerator = ({ sessionCode, children }: QRCodeGeneratorProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent 
+      <DialogContent
         className="sm:max-w-md w-[90vw] max-w-[400px] mx-auto bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl"
         style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 9999
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
         }}
       >
         <DialogHeader>

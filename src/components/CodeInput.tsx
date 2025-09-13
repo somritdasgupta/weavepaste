@@ -85,8 +85,8 @@ const CodeInput: React.FC<CodeInputProps> = ({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex gap-1 sm:gap-2 md:gap-3 justify-center max-w-full overflow-hidden">
+    <div className="w-full space-y-3">
+      <div className="flex gap-1 sm:gap-2 md:gap-3 justify-center w-full">
         {values.map((value, index) => (
           <Input
             key={index}

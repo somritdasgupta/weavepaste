@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { generateDeviceName as generateCreativeDeviceName } from "@/lib/deviceNames";
+import { useSessionCleanup } from "./useSessionCleanup";
 
 export interface Session {
   id: string;
@@ -47,6 +48,13 @@ export const useSession = (sessionCode?: string) => {
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [isReconnecting, setIsReconnecting] = useState(false);
+
+  // Initialize cleanup system for automatic session maintenance
+  useSessionCleanup({
+    sessionId: session?.id,
+    userName: currentUser?.user_name,
+    isActive: !!session && !!currentUser,
+  });
 
   const generateDeviceName = () => {
     return generateCreativeDeviceName();

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import JoinSession from "./pages/JoinSession";
+import DatabaseAdmin from "./pages/DatabaseAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/join/:sessionCode" element={<JoinSession />} />
           <Route path="/session/:sessionCode" element={<Index />} />
+          <Route path="/admin" element={<DatabaseAdmin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
