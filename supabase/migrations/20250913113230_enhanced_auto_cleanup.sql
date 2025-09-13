@@ -2,10 +2,11 @@
 -- This migration adds comprehensive session cleanup features
 -- Handles existing function conflicts by dropping and recreating
 
--- Drop existing functions if they exist to avoid conflicts
-DROP FUNCTION IF EXISTS public.cleanup_expired_sessions();
-DROP FUNCTION IF EXISTS public.update_session_activity();
+-- Drop existing triggers and functions to avoid conflicts
+DROP TRIGGER IF EXISTS update_sessions_activity ON public.sessions;
 DROP FUNCTION IF EXISTS public.trigger_session_update();
+DROP FUNCTION IF EXISTS public.update_session_activity();
+DROP FUNCTION IF EXISTS public.cleanup_expired_sessions();
 
 -- 1. Enhanced cleanup function with better logic and return type
 CREATE OR REPLACE FUNCTION public.cleanup_expired_sessions()
