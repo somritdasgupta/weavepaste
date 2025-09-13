@@ -1,5 +1,13 @@
+-- Enhanced auto-cleanup system for sessions (FIXED VERSION)
+-- This migration adds comprehensive session cleanup features
+-- Handles existing function conflicts by dropping and recreating
 
--- 1. Cleanup function with better logic
+-- Drop existing functions if they exist to avoid conflicts
+DROP FUNCTION IF EXISTS public.cleanup_expired_sessions();
+DROP FUNCTION IF EXISTS public.update_session_activity();
+DROP FUNCTION IF EXISTS public.trigger_session_update();
+
+-- 1. Enhanced cleanup function with better logic and return type
 CREATE OR REPLACE FUNCTION public.cleanup_expired_sessions()
 RETURNS INTEGER AS $$
 DECLARE
@@ -150,6 +158,7 @@ ORDER BY s.last_activity DESC;
 -- Grant permissions for the view
 GRANT SELECT ON public.session_health TO authenticated, anon;
 
+-- Add comments for documentation
 COMMENT ON FUNCTION public.cleanup_expired_sessions() IS 'Deletes expired, inactive, or abandoned sessions and returns count of deleted sessions';
 COMMENT ON FUNCTION public.run_comprehensive_cleanup() IS 'Runs complete cleanup of users and sessions, returns statistics';
 COMMENT ON FUNCTION public.user_heartbeat(UUID, TEXT) IS 'Updates user activity timestamp - call this from frontend every 30 seconds';
